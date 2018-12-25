@@ -1,12 +1,11 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
+import * as PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { SiderProps } from './Sider';
 
-export interface BasicProps {
-  style?: React.CSSProperties;
+export interface BasicProps extends React.HTMLAttributes<HTMLDivElement> {
   prefixCls?: string;
-  className?: string;
+  hasSider?: boolean;
 }
 
 function generator(props: BasicProps) {
@@ -29,12 +28,18 @@ class Basic extends React.Component<BasicProps, any> {
     const { prefixCls, className, children, ...others } = this.props;
     const divCls = classNames(className, prefixCls);
     return (
-      <div className={divCls} {...others}>{children}</div>
+      <div className={divCls} {...others}>
+        {children}
+      </div>
     );
   }
 }
 
-class BasicLayout extends React.Component<BasicProps, any> {
+interface BasicLayoutState {
+  siders: string[];
+}
+
+class BasicLayout extends React.Component<BasicProps, BasicLayoutState> {
   static childContextTypes = {
     siderHook: PropTypes.object,
   };
@@ -44,26 +49,28 @@ class BasicLayout extends React.Component<BasicProps, any> {
     return {
       siderHook: {
         addSider: (id: string) => {
-          this.setState({
-            siders: [...this.state.siders, id],
-          });
+          this.setState(state => ({
+            siders: [...state.siders, id],
+          }));
         },
         removeSider: (id: string) => {
-          this.setState({
-            siders: this.state.siders.filter(currentId => currentId !== id),
-          });
+          this.setState(state => ({
+            siders: state.siders.filter(currentId => currentId !== id),
+          }));
         },
       },
     };
   }
 
   render() {
-    const { prefixCls, className, children, ...others } = this.props;
+    const { prefixCls, className, children, hasSider, ...others } = this.props;
     const divCls = classNames(className, prefixCls, {
-      [`${prefixCls}-has-sider`]: this.state.siders.length > 0,
+      [`${prefixCls}-has-sider`]: hasSider || this.state.siders.length > 0,
     });
     return (
-      <div className={divCls} {...others}>{children}</div>
+      <div className={divCls} {...others}>
+        {children}
+      </div>
     );
   }
 }

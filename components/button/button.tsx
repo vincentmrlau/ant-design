@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { findDOMNode } from 'react-dom';
-import PropTypes from 'prop-types';
+import * as PropTypes from 'prop-types';
 import classNames from 'classnames';
-import omit from 'omit.js';
+import Wave from '../_util/wave';
 import Icon from '../icon';
 import Group from './button-group';
+import { tuple } from '../_util/type';
 
 const rxTwoCNChar = /^[\u4e00-\u9fa5]{2}$/;
 const isTwoCNChar = rxTwoCNChar.test.bind(rxTwoCNChar);
@@ -20,10 +20,13 @@ function insertSpace(child: React.ReactChild, needInserted: boolean) {
   }
   const SPACE = needInserted ? ' ' : '';
   // strictNullChecks oops.
-  if (typeof child !== 'string' && typeof child !== 'number' &&
-    isString(child.type) && isTwoCNChar(child.props.children)) {
-    return React.cloneElement(child, {},
-      child.props.children.split('').join(SPACE));
+  if (
+    typeof child !== 'string' &&
+    typeof child !== 'number' &&
+    isString(child.type) &&
+    isTwoCNChar(child.props.children)
+  ) {
+    return React.cloneElement(child, {}, child.props.children.split('').join(SPACE));
   }
   if (typeof child === 'string') {
     if (isTwoCNChar(child)) {
@@ -34,29 +37,42 @@ function insertSpace(child: React.ReactChild, needInserted: boolean) {
   return child;
 }
 
-export type ButtonType = 'primary' | 'ghost' | 'dashed' | 'danger';
-export type ButtonShape = 'circle' | 'circle-outline';
-export type ButtonSize = 'small' | 'default' | 'large';
+const ButtonTypes = tuple('default', 'primary', 'ghost', 'dashed', 'danger');
+export type ButtonType = (typeof ButtonTypes)[number];
+const ButtonShapes = tuple('circle', 'circle-outline');
+export type ButtonShape = (typeof ButtonShapes)[number];
+const ButtonSizes = tuple('large', 'default', 'small');
+export type ButtonSize = (typeof ButtonSizes)[number];
+const ButtonHTMLTypes = tuple('submit', 'button', 'reset');
+export type ButtonHTMLType = (typeof ButtonHTMLTypes)[number];
 
-export interface ButtonProps {
+export interface BaseButtonProps {
   type?: ButtonType;
-  htmlType?: string;
   icon?: string;
   shape?: ButtonShape;
   size?: ButtonSize;
-  onClick?: React.FormEventHandler<any>;
-  onMouseUp?: React.FormEventHandler<any>;
-  onMouseDown?: React.FormEventHandler<any>;
   loading?: boolean | { delay?: number };
-  disabled?: boolean;
-  style?: React.CSSProperties;
   prefixCls?: string;
   className?: string;
   ghost?: boolean;
-  target?: string;
-  href?: string;
-  download?: string;
+  block?: boolean;
+  children?: React.ReactNode;
 }
+
+export type AnchorButtonProps = {
+  href: string;
+  target?: string;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+} & BaseButtonProps &
+  React.AnchorHTMLAttributes<HTMLAnchorElement>;
+
+export type NativeButtonProps = {
+  htmlType?: ButtonHTMLType;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+} & BaseButtonProps &
+  React.ButtonHTMLAttributes<HTMLButtonElement>;
+
+export type ButtonProps = AnchorButtonProps | NativeButtonProps;
 
 export default class Button extends React.Component<ButtonProps, any> {
   static Group: typeof Group;
@@ -66,39 +82,34 @@ export default class Button extends React.Component<ButtonProps, any> {
     prefixCls: 'ant-btn',
     loading: false,
     ghost: false,
+    block: false,
   };
 
   static propTypes = {
-    type: PropTypes.string,
-    shape: PropTypes.oneOf(['circle', 'circle-outline']),
-    size: PropTypes.oneOf(['large', 'default', 'small']),
-    htmlType: PropTypes.oneOf(['submit', 'button', 'reset']),
+    type: PropTypes.oneOf(ButtonTypes),
+    shape: PropTypes.oneOf(ButtonShapes),
+    size: PropTypes.oneOf(ButtonSizes),
+    htmlType: PropTypes.oneOf(ButtonHTMLTypes),
     onClick: PropTypes.func,
     loading: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]),
     className: PropTypes.string,
     icon: PropTypes.string,
+    block: PropTypes.bool,
   };
 
-  timeout: number;
-  delayTimeout: number;
+  private delayTimeout: number;
+  private buttonNode: HTMLElement | null;
 
   constructor(props: ButtonProps) {
     super(props);
     this.state = {
       loading: props.loading,
-      clicked: false,
       hasTwoCNChar: false,
     };
   }
 
   componentDidMount() {
-    // Fix for HOC usage like <FormatMessage />
-    const buttonText = (findDOMNode(this) as HTMLElement).innerText;
-    if (this.isNeedInserted() && isTwoCNChar(buttonText)) {
-      this.setState({
-        hasTwoCNChar: true,
-      });
-    }
+    this.fixTwoCNChar();
   }
 
   componentWillReceiveProps(nextProps: ButtonProps) {
@@ -116,39 +127,71 @@ export default class Button extends React.Component<ButtonProps, any> {
     }
   }
 
+  componentDidUpdate() {
+    this.fixTwoCNChar();
+  }
+
   componentWillUnmount() {
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-    }
     if (this.delayTimeout) {
       clearTimeout(this.delayTimeout);
     }
   }
 
-  handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    // Add click effect
-    this.setState({ clicked: true });
-    clearTimeout(this.timeout);
-    this.timeout = window.setTimeout(() => this.setState({ clicked: false }), 500);
+  saveButtonRef = (node: HTMLElement | null) => {
+    this.buttonNode = node;
+  };
 
-    const onClick = this.props.onClick;
-    if (onClick) {
-      onClick(e);
+  fixTwoCNChar() {
+    // Fix for HOC usage like <FormatMessage />
+    if (!this.buttonNode) {
+      return;
+    }
+    const buttonText = this.buttonNode.textContent || this.buttonNode.innerText;
+    if (this.isNeedInserted() && isTwoCNChar(buttonText)) {
+      if (!this.state.hasTwoCNChar) {
+        this.setState({
+          hasTwoCNChar: true,
+        });
+      }
+    } else if (this.state.hasTwoCNChar) {
+      this.setState({
+        hasTwoCNChar: false,
+      });
     }
   }
 
+  handleClick: React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement> = e => {
+    const { loading } = this.state;
+    const { onClick } = this.props;
+    if (!!loading) {
+      return;
+    }
+    if (onClick) {
+      (onClick as React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>)(e);
+    }
+  };
+
   isNeedInserted() {
-    const { loading, icon, children } = this.props;
-    const iconType = loading ? 'loading' : icon;
-    return React.Children.count(children) === 1 && (!iconType || iconType === 'loading');
+    const { icon, children } = this.props;
+    return React.Children.count(children) === 1 && !icon;
   }
 
   render() {
     const {
-      type, shape, size, className, htmlType, children, icon, prefixCls, ghost, ...others,
+      type,
+      shape,
+      size,
+      className,
+      children,
+      icon,
+      prefixCls,
+      ghost,
+      loading: _loadingProp,
+      block,
+      ...rest
     } = this.props;
 
-    const { loading, clicked, hasTwoCNChar } = this.state;
+    const { loading, hasTwoCNChar } = this.state;
 
     // large => lg
     // small => sm
@@ -163,33 +206,62 @@ export default class Button extends React.Component<ButtonProps, any> {
         break;
     }
 
-    const ComponentProp = others.href ? 'a' : 'button';
-
+    const now = new Date();
+    const isChristmas = now.getMonth() === 11 && now.getDate() === 25;
     const classes = classNames(prefixCls, className, {
       [`${prefixCls}-${type}`]: type,
       [`${prefixCls}-${shape}`]: shape,
       [`${prefixCls}-${sizeCls}`]: sizeCls,
-      [`${prefixCls}-icon-only`]: !children && icon,
+      [`${prefixCls}-icon-only`]: !children && children !== 0 && icon,
       [`${prefixCls}-loading`]: loading,
-      [`${prefixCls}-clicked`]: clicked,
       [`${prefixCls}-background-ghost`]: ghost,
       [`${prefixCls}-two-chinese-chars`]: hasTwoCNChar,
+      [`${prefixCls}-block`]: block,
+      christmas: isChristmas,
     });
 
     const iconType = loading ? 'loading' : icon;
     const iconNode = iconType ? <Icon type={iconType} /> : null;
-    const kids = (children || children === 0)
-      ? React.Children.map(children, child => insertSpace(child, this.isNeedInserted())) : null;
+    const kids =
+      children || children === 0
+        ? React.Children.map(children, child => insertSpace(child, this.isNeedInserted()))
+        : null;
+
+    const title = isChristmas ? 'Ho Ho Ho!' : rest.title;
+
+    const linkButtonRestProps = rest as AnchorButtonProps;
+    if (linkButtonRestProps.href !== undefined) {
+      return (
+        <a
+          {...linkButtonRestProps}
+          className={classes}
+          onClick={this.handleClick}
+          title={title}
+          ref={this.saveButtonRef}
+        >
+          {iconNode}
+          {kids}
+        </a>
+      );
+    }
+
+    // React does not recognize the `htmlType` prop on a DOM element. Here we pick it out of `rest`.
+    const { htmlType, ...otherProps } = rest as NativeButtonProps;
 
     return (
-      <ComponentProp
-        {...omit(others, ['loading'])}
-        type={others.href ? undefined : (htmlType || 'button')}
-        className={classes}
-        onClick={this.handleClick}
-      >
-        {iconNode}{kids}
-      </ComponentProp>
+      <Wave>
+        <button
+          {...otherProps as NativeButtonProps}
+          type={htmlType || 'button'}
+          className={classes}
+          onClick={this.handleClick}
+          title={title}
+          ref={this.saveButtonRef}
+        >
+          {iconNode}
+          {kids}
+        </button>
+      </Wave>
     );
   }
 }

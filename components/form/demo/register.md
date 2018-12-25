@@ -14,9 +14,11 @@ title:
 Fill in this form to create a new account for you.
 
 ````jsx
-import { Form, Input, Tooltip, Icon, Cascader, Select, Row, Col, Checkbox, Button, AutoComplete } from 'antd';
-const FormItem = Form.Item;
-const Option = Select.Option;
+import {
+  Form, Input, Tooltip, Icon, Cascader, Select, Row, Col, Checkbox, Button, AutoComplete,
+} from 'antd';
+
+const { Option } = Select;
 const AutoCompleteOption = AutoComplete.Option;
 
 const residences = [{
@@ -48,6 +50,7 @@ class RegistrationForm extends React.Component {
     confirmDirty: false,
     autoCompleteResult: [],
   };
+
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll((err, values) => {
@@ -56,11 +59,13 @@ class RegistrationForm extends React.Component {
       }
     });
   }
+
   handleConfirmBlur = (e) => {
     const value = e.target.value;
     this.setState({ confirmDirty: this.state.confirmDirty || !!value });
   }
-  checkPassword = (rule, value, callback) => {
+
+  compareToFirstPassword = (rule, value, callback) => {
     const form = this.props.form;
     if (value && value !== form.getFieldValue('password')) {
       callback('Two passwords that you enter is inconsistent!');
@@ -68,7 +73,8 @@ class RegistrationForm extends React.Component {
       callback();
     }
   }
-  checkConfirm = (rule, value, callback) => {
+
+  validateToNextPassword = (rule, value, callback) => {
     const form = this.props.form;
     if (value && this.state.confirmDirty) {
       form.validateFields(['confirm'], { force: true });
@@ -127,7 +133,7 @@ class RegistrationForm extends React.Component {
 
     return (
       <Form onSubmit={this.handleSubmit}>
-        <FormItem
+        <Form.Item
           {...formItemLayout}
           label="E-mail"
         >
@@ -140,8 +146,8 @@ class RegistrationForm extends React.Component {
           })(
             <Input />
           )}
-        </FormItem>
-        <FormItem
+        </Form.Item>
+        <Form.Item
           {...formItemLayout}
           label="Password"
         >
@@ -149,13 +155,13 @@ class RegistrationForm extends React.Component {
             rules: [{
               required: true, message: 'Please input your password!',
             }, {
-              validator: this.checkConfirm,
+              validator: this.validateToNextPassword,
             }],
           })(
             <Input type="password" />
           )}
-        </FormItem>
-        <FormItem
+        </Form.Item>
+        <Form.Item
           {...formItemLayout}
           label="Confirm Password"
         >
@@ -163,13 +169,13 @@ class RegistrationForm extends React.Component {
             rules: [{
               required: true, message: 'Please confirm your password!',
             }, {
-              validator: this.checkPassword,
+              validator: this.compareToFirstPassword,
             }],
           })(
             <Input type="password" onBlur={this.handleConfirmBlur} />
           )}
-        </FormItem>
-        <FormItem
+        </Form.Item>
+        <Form.Item
           {...formItemLayout}
           label={(
             <span>
@@ -185,8 +191,8 @@ class RegistrationForm extends React.Component {
           })(
             <Input />
           )}
-        </FormItem>
-        <FormItem
+        </Form.Item>
+        <Form.Item
           {...formItemLayout}
           label="Habitual Residence"
         >
@@ -196,8 +202,8 @@ class RegistrationForm extends React.Component {
           })(
             <Cascader options={residences} />
           )}
-        </FormItem>
-        <FormItem
+        </Form.Item>
+        <Form.Item
           {...formItemLayout}
           label="Phone Number"
         >
@@ -206,8 +212,8 @@ class RegistrationForm extends React.Component {
           })(
             <Input addonBefore={prefixSelector} style={{ width: '100%' }} />
           )}
-        </FormItem>
-        <FormItem
+        </Form.Item>
+        <Form.Item
           {...formItemLayout}
           label="Website"
         >
@@ -222,8 +228,8 @@ class RegistrationForm extends React.Component {
               <Input />
             </AutoComplete>
           )}
-        </FormItem>
-        <FormItem
+        </Form.Item>
+        <Form.Item
           {...formItemLayout}
           label="Captcha"
           extra="We must make sure that your are a human."
@@ -240,17 +246,17 @@ class RegistrationForm extends React.Component {
               <Button>Get captcha</Button>
             </Col>
           </Row>
-        </FormItem>
-        <FormItem {...tailFormItemLayout}>
+        </Form.Item>
+        <Form.Item {...tailFormItemLayout}>
           {getFieldDecorator('agreement', {
             valuePropName: 'checked',
           })(
             <Checkbox>I have read the <a href="">agreement</a></Checkbox>
           )}
-        </FormItem>
-        <FormItem {...tailFormItemLayout}>
+        </Form.Item>
+        <Form.Item {...tailFormItemLayout}>
           <Button type="primary" htmlType="submit">Register</Button>
-        </FormItem>
+        </Form.Item>
       </Form>
     );
   }

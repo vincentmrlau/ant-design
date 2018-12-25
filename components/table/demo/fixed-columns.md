@@ -15,7 +15,7 @@ title:
 
 ## en-US
 
-To fix some columns and scroll inside other columns, and you must set `scoll.x` meanwhile.
+To fix some columns and scroll inside other columns, and you must set `scroll.x` meanwhile.
 
 > Specify the width of columns if header and cell do not align properly.
 
@@ -25,8 +25,12 @@ To fix some columns and scroll inside other columns, and you must set `scoll.x` 
 import { Table } from 'antd';
 
 const columns = [
-  { title: 'Full Name', width: 100, dataIndex: 'name', key: 'name', fixed: 'left' },
-  { title: 'Age', width: 100, dataIndex: 'age', key: 'age', fixed: 'left' },
+  {
+    title: 'Full Name', width: 100, dataIndex: 'name', key: 'name', fixed: 'left',
+  },
+  {
+    title: 'Age', width: 100, dataIndex: 'age', key: 'age', fixed: 'left',
+  },
   { title: 'Column 1', dataIndex: 'address', key: '1' },
   { title: 'Column 2', dataIndex: 'address', key: '2' },
   { title: 'Column 3', dataIndex: 'address', key: '3' },
@@ -40,7 +44,7 @@ const columns = [
     key: 'operation',
     fixed: 'right',
     width: 100,
-    render: () => <a href="#">action</a>,
+    render: () => <a href="javascript:;">action</a>,
   },
 ];
 

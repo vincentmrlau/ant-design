@@ -1,9 +1,10 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
+import * as PropTypes from 'prop-types';
 import { AbstractCheckboxProps } from '../checkbox/Checkbox';
 import Radio from './radio';
+import { RadioChangeEvent } from './interface';
 
-export type RadioButtonProps = AbstractCheckboxProps;
+export type RadioButtonProps = AbstractCheckboxProps<RadioChangeEvent>;
 
 export default class RadioButton extends React.Component<RadioButtonProps, any> {
   static defaultProps = {
@@ -14,6 +15,8 @@ export default class RadioButton extends React.Component<RadioButtonProps, any> 
     radioGroup: PropTypes.any,
   };
 
+  context: any;
+
   render() {
     const radioProps: RadioButtonProps = { ...this.props };
     if (this.context.radioGroup) {
@@ -22,8 +25,6 @@ export default class RadioButton extends React.Component<RadioButtonProps, any> 
       radioProps.disabled = this.props.disabled || this.context.radioGroup.disabled;
     }
 
-    return (
-      <Radio {...radioProps} />
-    );
+    return <Radio {...radioProps} />;
   }
 }

@@ -1,6 +1,3 @@
-import * as moment from 'moment';
-moment.locale('it');
-
 import Pagination from 'rc-pagination/lib/locale/it_IT';
 import DatePicker from '../date-picker/locale/it_IT';
 import TimePicker from '../time-picker/locale/it_IT';
@@ -13,12 +10,13 @@ export default {
   TimePicker,
   Calendar,
   Table: {
-    filterTitle: 'Menu Filtro',
+    filterTitle: 'Menù Filtro',
     filterConfirm: 'OK',
     filterReset: 'Reset',
     emptyText: 'Nessun dato',
     selectAll: 'Seleziona pagina corrente',
-    selectInvert: 'Selezionare Inverti',
+    selectInvert: 'Inverti selezione nella pagina corrente',
+    sortTitle: 'Ordina',
   },
   Modal: {
     okText: 'OK',

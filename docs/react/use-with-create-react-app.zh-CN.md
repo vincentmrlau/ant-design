@@ -1,5 +1,5 @@
 ---
-order: 4
+order: 3
 title: 在 create-react-app 中使用
 ---
 
@@ -101,7 +101,7 @@ export default App;
 引入 react-app-rewired 并修改 package.json 里的启动配置。
 
 ```
-$ yarn add react-app-rewired --dev
+$ yarn add react-app-rewired
 ```
 
 ```diff
@@ -111,8 +111,8 @@ $ yarn add react-app-rewired --dev
 +   "start": "react-app-rewired start",
 -   "build": "react-scripts build",
 +   "build": "react-app-rewired build",
--   "test": "react-scripts test --env=jsdom",
-+   "test": "react-app-rewired test --env=jsdom",
+-   "test": "react-scripts test",
++   "test": "react-app-rewired test",
 }
 ```
 
@@ -130,14 +130,17 @@ module.exports = function override(config, env) {
 [babel-plugin-import](https://github.com/ant-design/babel-plugin-import) 是一个用于按需加载组件代码和样式的 babel 插件（[原理](/docs/react/getting-started#按需加载)），现在我们尝试安装它并修改 `config-overrides.js` 文件。
 
 ```bash
-$ yarn add babel-plugin-import --dev
+$ yarn add babel-plugin-import
 ```
 
 ```diff
 + const { injectBabelPlugin } = require('react-app-rewired');
 
   module.exports = function override(config, env) {
-+   config = injectBabelPlugin(['import', { libraryName: 'antd', libraryDirectory: 'es', style: 'css' }], config);
++   config = injectBabelPlugin(
++     ['import', { libraryName: 'antd', libraryDirectory: 'es', style: 'css' }],
++     config,
++   );
     return config;
   };
 ```
@@ -171,7 +174,7 @@ $ yarn add babel-plugin-import --dev
 按照 [配置主题](/docs/react/customize-theme) 的要求，自定义主题需要用到 less 变量覆盖功能。我们可以引入 react-app-rewire 的 less 插件 [react-app-rewire-less](http://npmjs.com/react-app-rewire-less) 来帮助加载 less 样式，同时修改 `config-overrides.js` 文件。
 
 ```bash
-$ yarn add react-app-rewire-less --dev
+$ yarn add react-app-rewire-less
 ```
 
 ```diff
@@ -179,10 +182,14 @@ $ yarn add react-app-rewire-less --dev
 + const rewireLess = require('react-app-rewire-less');
 
   module.exports = function override(config, env) {
--   config = injectBabelPlugin(['import', { libraryName: 'antd', style: 'css' }], config);
-+   config = injectBabelPlugin(['import', { libraryName: 'antd', style: true }], config);
+    config = injectBabelPlugin(
+-     ['import', { libraryName: 'antd', libraryDirectory: 'es', style: 'css' }],
++     ['import', { libraryName: 'antd', libraryDirectory: 'es', style: true }], // change importing css to less
+      config,
+    );
 +   config = rewireLess.withLoaderOptions({
 +     modifyVars: { "@primary-color": "#1DA57A" },
++     javascriptEnabled: true,
 +   })(config, env);
     return config;
   };
@@ -207,4 +214,5 @@ React 生态圈中还有很多优秀的脚手架，使用它们并引入 antd �
 - [kriasoft/react-starter-kit](https://github.com/ant-design/react-starter-kit)
 - [create-react-app-antd](https://github.com/ant-design/create-react-app-antd)
 - [cra-ts-antd](https://github.com/comerc/cra-ts-antd)
-- [next.js](https://github.com/zeit/next.js/tree/v3-beta/examples/with-ant-design)
+- [next.js](https://github.com/zeit/next.js/tree/master/examples/with-ant-design)
+- [nwb](https://github.com/insin/nwb-examples/tree/master/react-app-antd)

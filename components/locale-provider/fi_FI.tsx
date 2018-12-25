@@ -1,6 +1,3 @@
-import * as moment from 'moment';
-moment.locale('fi');
-
 import Pagination from 'rc-pagination/lib/locale/fi_FI';
 import DatePicker from '../date-picker/locale/fi_FI';
 import TimePicker from '../time-picker/locale/fi_FI';
@@ -19,6 +16,7 @@ export default {
     emptyText: 'Ei kohteita',
     selectAll: 'Valitse kaikki',
     selectInvert: 'Valitse päinvastoin',
+    sortTitle: 'Lajittele',
   },
   Modal: {
     okText: 'OK',

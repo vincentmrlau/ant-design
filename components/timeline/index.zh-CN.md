@@ -1,7 +1,7 @@
 ---
 category: Components
 subtitle: 时间轴
-type: Data Display
+type: 数据展示
 title: Timeline
 ---
 
@@ -30,6 +30,9 @@ title: Timeline
 | 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | pending | 指定最后一个幽灵节点是否存在或内容 | boolean\|string\|ReactNode | false |
+| pendingDot | 当最后一个幽灵节点存在時，指定其时间图点 | \|string\|ReactNode | `<Icon type="loading" />` |
+| reverse | 节点排序 | boolean | false |
+| mode | 通过设置 `mode` 可以改变时间轴和内容的相对位置  | `left` \| `alternate` \| `right` |
 
 ### Timeline.Item
 
